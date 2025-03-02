@@ -60,10 +60,10 @@ public class settingsIos {
 	        driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
 
 	        // Scroll and click on 'Apps' (adjust the text based on actual element for iOS)
-	        driver.findElement(AppiumBy.iOSClassChain("**/XCUIElementTypeStaticText[`name == 'Apps'`]")).click();
+	        driver.findElement(AppiumBy.iOSClassChain("**/XCUIElementTypeStaticText[`name == 'Privacy & Security'`]")).click();
 
 	        // Click on 'See all apps' (adjusted for iOS)
-	        driver.findElement(AppiumBy.iOSClassChain("**/XCUIElementTypeButton[`name == 'See All Apps'`]")).click();
+	        //driver.findElement(AppiumBy.iOSClassChain("**/XCUIElementTypeButton[`name == 'See All Apps'`]")).click();
 
 	        js = (JavascriptExecutor) driver;
 

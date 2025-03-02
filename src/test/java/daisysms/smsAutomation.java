@@ -1,16 +1,20 @@
 package daisysms;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
+import java.io.*;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.*;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 public class smsAutomation {
 	public smsAutomation(){}
 	//	public static void main(String[] args) {
+	private static final String FILE_PATH = "/TinderAutomation/src/test/java/daisysms/sms.xlsx";
 			
 	public String[] getNumber() {
 		 String apiKey = "rspgsuGoOyhZ6GNFGPo04BbArDW1HQ";
@@ -53,5 +57,39 @@ public class smsAutomation {
 		System.out.println(otp);
 		return otp;
 	}
+	  private void saveToExcel(String id, String number) throws IOException {
+	        File file = new File(FILE_PATH);
+	        Workbook workbook;
+	        Sheet sheet;
+
+	        if (file.exists()) {
+	            FileInputStream fis = new FileInputStream(file);
+	            workbook = WorkbookFactory.create(fis);
+	            sheet = workbook.getSheetAt(0);
+	            fis.close();
+	        } else {
+	            workbook = new XSSFWorkbook();
+	            sheet = workbook.createSheet("SMS Data");
+	            
+	            // Create Header Row
+	            Row header = sheet.createRow(0);
+	            header.createCell(0).setCellValue("ID");
+	            header.createCell(1).setCellValue("Number");
+	        }
+
+	        // Find the last row and add new data
+	        int rowNum = sheet.getLastRowNum() + 1;
+	        Row row = sheet.createRow(rowNum);
+	        row.createCell(0).setCellValue(id);
+	        row.createCell(1).setCellValue(number);
+
+	        // Write back to file
+	        FileOutputStream fos = new FileOutputStream(file);
+	        workbook.write(fos);
+	        fos.close();
+	        workbook.close();
+
+	        System.out.println("Data saved to Excel: ID=" + id + ", Number=" + number);
+	    }
 	}
-	//curl "https://daisysms.com/stubs/handler_api.php?api_key=rspgsuGoOyhZ6GNFGPo04BbArDW1HQ&action=getStatus&id=156327021"
+	

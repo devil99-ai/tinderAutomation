@@ -55,7 +55,25 @@
         <artifactId>unirest-java</artifactId>
         <version>3.13.6</version>
     </dependency>
-<!-- https://mvnrepository.com/artifact/io.rest-assured/rest-assured -->
+<!-- https://mvnrepository.com/artifact/org.bitbucket.swattu/excel-utils -->
+<dependency>
+    <groupId>org.bitbucket.swattu</groupId>
+    <artifactId>excel-utils</artifactId>
+    <version>6.0.1</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.poi/poi -->
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi</artifactId>
+    <version>5.4.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml -->
+<dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.4.0</version>
+</dependency>
+
 <dependency>
     <groupId>io.rest-assured</groupId>
     <artifactId>rest-assured</artifactId>

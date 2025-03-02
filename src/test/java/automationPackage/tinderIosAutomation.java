@@ -3,12 +3,19 @@ package automationPackage;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -21,6 +28,7 @@ import appsPackage.settingsIos;
 import daisysms.smsAutomation;
 import io.appium.java_client.AppiumBy;
 import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.Location;
 import io.appium.java_client.PerformsTouchActions;
 import io.appium.java_client.TouchAction;
 import io.appium.java_client.ios.IOSDriver;
@@ -38,6 +46,7 @@ public class tinderIosAutomation {
 	    smsAutomation sms;
 	    swipeAction swipe;
 	    settingsIos settings = new settingsIos();
+	    private static final String EXCEL_PATH="./TinderAutomation/src/test/java/excelUtils/excelUtils.xlsx";
 
 	    // CAPTCHA Container
 	    By captchaContainer = By.xpath("//XCUIElementTypeImage[@name='Match this angle']");
@@ -48,38 +57,46 @@ public class tinderIosAutomation {
 	    By targetHand = By.xpath("//*[contains(@name, 'target_indicator')]");
 
 	    @BeforeMethod
-	    public void setUp() throws MalformedURLException {
+	    public void setUp() throws IOException, InterruptedException, TesseractException {
 	        settings.setup();
 	        settings.settings();
-	        try {
-	            FileInputStream file = new FileInputStream("C:\\Users\\svksh\\eclipse-workspace\\TinderAutomation\\src\\test\\java\\enviromentVariables\\config.properties");
-	            prop.load(file);
+	        FileInputStream file = new FileInputStream(new File("C:\\path\\to\\your\\excelUtils.xlsx"));
+	        Workbook workbook = WorkbookFactory.create(file);
+	        Sheet sheet = workbook.getSheetAt(0);  // Assuming first sheet
 
-	        } catch (FileNotFoundException e) {
-	            e.printStackTrace();
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-
+	        // Loop through each row (starting from row 1, skipping headers)
+	        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+	            Row row = sheet.getRow(i);
+	            String platformVersion = row.getCell(2).getStringCellValue();
+	            String platformName = row.getCell(0).getStringCellValue();
+	            String deviceName = row.getCell(1).getStringCellValue();
+	            String udid = row.getCell(3).getStringCellValue();
 	        dcap = new DesiredCapabilities();
-	        dcap.setCapability("platformName", "iOS");
-	        dcap.setCapability("platformVersion", prop.getProperty("platformVersion"));
-	        dcap.setCapability("deviceName", prop.getProperty("deviceName"));
-	        dcap.setCapability("udid", prop.getProperty("udid"));
+	        dcap.setCapability("platformName", platformName);
+	        dcap.setCapability("platformVersion", platformVersion);
+	        dcap.setCapability("deviceName", deviceName);
+	        dcap.setCapability("udid", udid);
 	        dcap.setCapability("automationName", "XCUITest");
 	        dcap.setCapability("app", "com.tinder");
 	        dcap.setCapability("newCommandTimeout", 300);
 	        dcap.setCapability("connectHardwareKeyboard", true);
-
+	     // Convert String values from Excel to double
+	        double latitude = row.getCell(3).getNumericCellValue();
+            double longitude = row.getCell(4).getNumericCellValue();
+            double altitude = row.getCell(5).getNumericCellValue();
+	        Location location = new Location(latitude,longitude ,altitude ); // Latitude, Longitude, Altitude
 	        url = new URL("http://127.0.0.1:4723/wd/hub");
 	        driver = new IOSDriver(url, dcap);
 	        driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+	        driver.setLocation(location);
 	        wait = new WebDriverWait(driver, Duration.ofSeconds(60));
 	        sms = new smsAutomation();
 	        swipe = new swipeAction();
+	        tinderAutomationSetup();
+	        }
+	        workbook.close();
+	        file.close();
 	    }
-
-	    @Test
 	    public void tinderAutomationSetup() throws InterruptedException, TesseractException, IOException {
 	        driver.findElement(By.xpath("//XCUIElementTypeButton[@name='Tinder SMS Auth Option Login Button']")).click();
 	        WebElement closepopUp = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//XCUIElementTypeImage[@name='Cancel']")));
@@ -212,5 +229,50 @@ public class tinderIosAutomation {
 	                .release()
 	                .perform();
 	    }
+	    public static String[] readExcelData(int rowIndex) throws IOException {
+	    	
+	    	 FileInputStream file = new FileInputStream(new File(EXCEL_PATH));
+	    	    Workbook workbook = new XSSFWorkbook(file);
+	    	    Sheet sheet = workbook.getSheetAt(0);
+	    	    Row row = sheet.getRow(rowIndex);
+
+	    	    int colCount = row.getLastCellNum(); // Get total columns
+	    	    String[] data = new String[colCount];
+
+	    	    for (int i = 0; i < colCount; i++) {
+	    	        Cell cell = row.getCell(i);
+	    	        if (cell != null) {
+	    	            switch (cell.getCellType()) {
+	    	                case STRING:
+	    	                    data[i] = cell.getStringCellValue();
+	    	                    break;
+	    	                case NUMERIC:
+	    	                    if (DateUtil.isCellDateFormatted(cell)) {
+	    	                        // Handle Date values if needed
+	    	                        data[i] = cell.getDateCellValue().toString();
+	    	                    } else {
+	    	                        data[i] = String.valueOf(cell.getNumericCellValue());
+	    	                    }
+	    	                    break;
+	    	                case BOOLEAN:
+	    	                    data[i] = String.valueOf(cell.getBooleanCellValue());
+	    	                    break;
+	    	                case FORMULA:
+	    	                    data[i] = cell.getCellFormula();
+	    	                    break;
+	    	                case BLANK:
+	    	                    data[i] = "";
+	    	                    break;
+	    	                default:
+	    	                    data[i] = "";
+	    	            }
+	    	        } else {
+	    	            data[i] = ""; // Handle null cells
+	    	        }
+	    	    }
+
+	    	    workbook.close();
+	    	    return data;
+	    	}
 
 	}
